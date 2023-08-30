@@ -5,6 +5,7 @@ env:
   PATCHER_URL: ${{ vars.PATCHER_URL == '' && format('https://github.com/{0}/releases/latest/download/', github.repository) || vars.PATCHER_URL }}
   FILELIST_URL: ${{ vars.FILELIST_URL == '' && format('https://github.com/{0}/releases/latest/download', github.repository) || vars.FILELIST_URL }}
   STORAGE_URL: ${{ vars.STORAGE_URL == '' && format('https://raw.githubusercontent.com/{0}/master/', github.repository) || vars.STORAGE_URL }}
+  EXE_NAME: ${{ vars.EXE_NAME == '' && 'launcheq.exe' || vars.EXE_NAME }}
 
 jobs:
   platform_tests:
@@ -43,6 +44,7 @@ jobs:
         chmod +x filelistbuilder-linux-x64
         ./filelistbuilder-linux-x64 "rof" "${{env.STORAGE_URL}}" "../bin/launcheq.exe"
         mv eqemupatcher-hash.txt ../bin/launcheq-hash.txt
+        mv ../bin/launcheq.exe ../bin/${{env.EXE_NAME}}.exe
 
     # - name: Update coverage
     #   run: |
@@ -64,6 +66,6 @@ jobs:
         prerelease: false
         title: "${{ env.VERSION }}.${{ github.run_number }}"
         files: |
-          bin/launcheq.exe
+          bin/${{env.EXE_NAME}}.exe
           bin/launcheq-hash.txt
           rof/filelist_rof.yml

@@ -1,0 +1,2 @@
+nektulos.eqg
+lavastorm.eqg

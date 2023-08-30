@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"crypto/md5"
+	"embed"
 	"fmt"
 	"io"
 	"net/http"
@@ -18,6 +19,9 @@ import (
 
 	"github.com/fynelabs/selfupdate"
 )
+
+//go:embed rof2.torrent
+var torrentContent embed.FS
 
 // Client wraps the entire UI
 type Client struct {
@@ -68,19 +72,38 @@ func New(version string, patcherUrl string) (*Client, error) {
 	return c, nil
 }
 
+func (c *Client) PrePatch() {
+
+	_, err := os.Stat("eqgame.exe")
+	if err != nil {
+		_, err = os.Stat("everquest_rof2/eqgame.exe")
+		if err == nil {
+			err = c.CopyBackup()
+			if err != nil {
+				fmt.Printf("Failed to copy from everquest_rof2: %s\n", err)
+				fmt.Println("Automatically exiting in 10 seconds...")
+				time.Sleep(10 * time.Second)
+			}
+			return
+		}
+
+		err = c.Torrent()
+		if err != nil {
+			fmt.Printf("Failed to download: %s\n", err)
+			fmt.Println("Automatically exiting in 10 seconds...")
+			time.Sleep(10 * time.Second)
+
+			os.Exit(1)
+		}
+	}
+}
+
+// Patch starts the patching process
 func (c *Client) Patch() {
 	start := time.Now()
 	isErrored := false
 
-	_, err := os.Stat("eqgame.exe")
-	if err != nil {
-		fmt.Printf("eqgame.exe must be in the same directory as %s.\n", c.baseName)
-		fmt.Println("Automatically exiting in 10 seconds...")
-		time.Sleep(10 * time.Second)
-		os.Exit(1)
-	}
-
-	err = c.selfUpdateAndPatch()
+	err := c.selfUpdateAndPatch()
 	if err != nil {
 		c.logf("Failed patch: %s", err)
 		isErrored = true
@@ -227,14 +250,15 @@ func (c *Client) selfUpdate() error {
 		return fmt.Errorf("read %s: %w", url, err)
 	}
 
-	remoteHash := strings.TrimSpace(string(data))
+	myHash = strings.ToUpper(strings.TrimSpace(myHash))
+	remoteHash := strings.ToUpper(strings.TrimSpace(string(data)))
 
 	if remoteHash == "Not Found" {
 		c.logf("Remote site down, ignoring self update")
 		return nil
 	}
 
-	if strings.ToUpper(myHash) == strings.ToUpper(remoteHash) {
+	if myHash == remoteHash {
 		c.logf("Self update not needed")
 		return nil
 	}

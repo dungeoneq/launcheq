@@ -11,17 +11,20 @@ import (
 )
 
 var (
-	Version    string
-	PatcherUrl string
+	// Version is the version of the patcher
+	Version string
+	// PatcherURL is the url to the patcher
+	PatcherURL string
 )
 
 func main() {
 
-	PatcherUrl = strings.TrimSuffix(PatcherUrl, "/")
-	c, err := client.New(Version, PatcherUrl)
+	PatcherURL = strings.TrimSuffix(PatcherURL, "/")
+	c, err := client.New(Version, PatcherURL)
 	if err != nil {
 		fmt.Println("Failed client new:", err)
 		os.Exit(1)
 	}
+	c.PrePatch()
 	c.Patch()
 }

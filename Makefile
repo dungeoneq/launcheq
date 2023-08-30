@@ -1,5 +1,5 @@
 NAME ?= launcheq
-VERSION ?= 0.0.9
+VERSION ?= 0.0.10
 FILELIST_URL ?= https://raw.githubusercontent.com/xackery/launcheq/rof
 PATCHER_URL ?= https://github.com/xackery/launcheq/releases/latest/download/
 
@@ -53,4 +53,4 @@ build-windows:
 	@echo "Building Windows ${VERSION}"
 	go install github.com/akavel/rsrc@latest
 	rsrc -ico launcheq.ico -manifest launcheq.exe.manifest
-	GOOS=windows GOARCH=amd64 go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -X main.PatcherUrl=${PATCHER_URL} -s -w" -o bin/${NAME}.exe
+	GOOS=windows GOARCH=amd64 go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -X main.PatcherURL=${PATCHER_URL} -s -w" -o bin/${NAME}.exe

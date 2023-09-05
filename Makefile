@@ -1,7 +1,7 @@
 NAME ?= launcheq
-VERSION ?= 0.0.10
-FILELIST_URL ?= https://raw.githubusercontent.com/xackery/launcheq/rof
-PATCHER_URL ?= https://github.com/xackery/launcheq/releases/latest/download/
+VERSION ?= 0.0.11
+FILELIST_URL ?= https://raw.githubusercontent.com/retributioneq/launcheq/rof
+PATCHER_URL ?= https://github.com/retributioneq/launcheq/releases/latest/download/
 
 # CICD triggers this
 .PHONY: set-variable
@@ -54,3 +54,7 @@ build-windows:
 	go install github.com/akavel/rsrc@latest
 	rsrc -ico launcheq.ico -manifest launcheq.exe.manifest
 	GOOS=windows GOARCH=amd64 go build -buildmode=pie -ldflags="-X main.Version=${VERSION} -X main.PatcherURL=${PATCHER_URL} -s -w" -o bin/${NAME}.exe
+
+build-share:
+	make build-windows
+	cp bin/${NAME}.exe /Volumes/share/launcheq/

@@ -83,6 +83,7 @@ func (c *Client) PrePatch() {
 				fmt.Printf("Failed to copy from everquest_rof2: %s\n", err)
 				fmt.Println("Automatically exiting in 10 seconds...")
 				time.Sleep(10 * time.Second)
+				os.Exit(1)
 			}
 			return
 		}
@@ -93,6 +94,13 @@ func (c *Client) PrePatch() {
 			fmt.Println("Automatically exiting in 10 seconds...")
 			time.Sleep(10 * time.Second)
 
+			os.Exit(1)
+		}
+		err = c.CopyBackup()
+		if err != nil {
+			fmt.Printf("Failed to copy from everquest_rof2: %s\n", err)
+			fmt.Println("Automatically exiting in 10 seconds...")
+			time.Sleep(10 * time.Second)
 			os.Exit(1)
 		}
 	}
@@ -121,6 +129,11 @@ func (c *Client) Patch() {
 	if c.isPatched {
 		c.logf(c.patchSummary)
 		c.logf("You can check %s.txt if you wish to review the patched files later.", c.baseName)
+		if isErrored {
+			c.logf("Since patching failed, waiting 10 seconds before exiting...")
+			time.Sleep(10 * time.Second)
+			os.Exit(1)
+		}
 		c.logf("Since files were patched, waiting 5 seconds before launching EverQuest...")
 		time.Sleep(5 * time.Second)
 	}

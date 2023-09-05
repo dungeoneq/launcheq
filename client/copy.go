@@ -21,6 +21,7 @@ func (c *Client) CopyBackup() error {
 		}
 
 		dst := strings.TrimPrefix(path, "everquest_rof2/")
+		dst = strings.TrimPrefix(dst, "everquest_rof2\\")
 
 		fi, err := os.Stat(dst)
 		if err == nil {
@@ -28,7 +29,6 @@ func (c *Client) CopyBackup() error {
 			if fi.ModTime().After(info.ModTime()) && fi.Size() > info.Size()-100 && fi.Size() < info.Size()+100 {
 				return nil
 			}
-
 		}
 
 		r, err := os.Open(path)
@@ -48,15 +48,16 @@ func (c *Client) CopyBackup() error {
 		}
 		defer w.Close()
 
-		_, err = io.Copy(w, r)
+		buf := make([]byte, 1024*1024)
+		_, err = io.CopyBuffer(w, r, buf)
 		if err != nil {
 			return fmt.Errorf("copy %s: %w", dst, err)
 		}
-
 		err = w.Sync()
 		if err != nil {
 			return fmt.Errorf("sync %s: %w", dst, err)
 		}
+
 		return nil
 	})
 	if err != nil {

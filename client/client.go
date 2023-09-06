@@ -448,7 +448,7 @@ func (c *Client) patch() error {
 
 		if hash == entry.Md5 {
 			progressSize += int64(entry.Size)
-			if strings.Contains(strings.ToLower(entry.Name), "/maps/") {
+			if strings.HasPrefix(strings.ToLower(entry.Name), "maps/") {
 				if isMapsSkippedBefore {
 					continue
 				}
@@ -509,7 +509,7 @@ func (c *Client) patch() error {
 func (c *Client) downloadPatchFile(entry FileEntry) error {
 	c.logf("%s (%s)", entry.Name, generateSize(entry.Size))
 	client := c.httpClient
-	if !isMapsDownloaded && strings.Contains(strings.ToLower(entry.Name), "/maps/") {
+	if !isMapsDownloaded && strings.HasPrefix(strings.ToLower(entry.Name), "maps/") {
 		fmt.Println("Downloading maps.zip...")
 		url := fmt.Sprintf("%s/maps.zip", c.patcherUrl)
 		resp, err := client.Get(url)

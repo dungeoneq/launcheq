@@ -8,10 +8,10 @@ import (
 	"strings"
 )
 
-func (c *Client) CopyBackup() error {
+func (c *Client) CopyBackup(rofPath string) error {
 	c.logf("Copying files from everquest_rof2...")
 	// copy all files in everquest_rof2 to current path
-	err := filepath.Walk("everquest_rof2", func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(rofPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -22,6 +22,8 @@ func (c *Client) CopyBackup() error {
 
 		dst := strings.TrimPrefix(path, "everquest_rof2/")
 		dst = strings.TrimPrefix(dst, "everquest_rof2\\")
+		dst = strings.TrimPrefix(dst, "../everquest_rof2\\")
+		dst = strings.TrimPrefix(dst, "..\\everquest_rof2\\")
 
 		fi, err := os.Stat(dst)
 		if err == nil {

@@ -42,6 +42,7 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0
 	github.com/lispad/go-generics-tools v1.1.0 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect

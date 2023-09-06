@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	_ "embed"
@@ -23,8 +22,9 @@ func main() {
 	c, err := client.New(Version, PatcherURL)
 	if err != nil {
 		fmt.Println("Failed client new:", err)
-		os.Exit(1)
+		client.Exit(1)
 	}
+	c.Sanitize()
 	c.PrePatch()
 	c.Patch()
 }

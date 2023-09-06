@@ -37,6 +37,8 @@ jobs:
       run: |
         make build-windows
 
+    - name: Build Maps (If Exists)
+      run: make maps
     - name: Build FileList
       run: |
         cd rof
@@ -69,3 +71,4 @@ jobs:
           bin/${{env.EXE_NAME}}
           bin/launcheq-hash.txt
           rof/filelist_rof.yml
+          bin/maps.zip

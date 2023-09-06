@@ -70,7 +70,7 @@ func (c *Client) Torrent() error {
 	tr.DownloadAll()
 	torrentClient.WaitAll()
 
-	err = c.CopyBackup()
+	err = c.CopyBackup("everquest_rof2")
 	if err != nil {
 		return fmt.Errorf("copyBackup: %w", err)
 	}

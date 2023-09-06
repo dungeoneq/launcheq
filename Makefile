@@ -1,5 +1,5 @@
 NAME ?= launcheq
-VERSION ?= 0.0.11
+VERSION ?= 0.0.12
 FILELIST_URL ?= https://raw.githubusercontent.com/retributioneq/launcheq/rof
 PATCHER_URL ?= https://github.com/retributioneq/launcheq/releases/latest/download/
 
@@ -58,3 +58,6 @@ build-windows:
 build-share:
 	make build-windows
 	cp bin/${NAME}.exe /Volumes/share/launcheq/
+maps:
+	@-cd rof && zip -r maps.zip maps
+	@-mv rof/maps.zip bin/

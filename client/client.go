@@ -1,6 +1,7 @@
 package client
 
 import (
+	"archive/zip"
 	"bufio"
 	"context"
 	"crypto/md5"
@@ -14,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/inconshreveable/mousetrap"
 	"github.com/xackery/launcheq/config"
 	"gopkg.in/yaml.v3"
 
@@ -22,6 +24,7 @@ import (
 
 //go:embed rof2.torrent
 var torrentContent embed.FS
+var isMapsDownloaded bool
 
 // Client wraps the entire UI
 type Client struct {
@@ -72,18 +75,57 @@ func New(version string, patcherUrl string) (*Client, error) {
 	return c, nil
 }
 
+func (c *Client) Sanitize() {
+
+	endPath := c.currentPath
+	// trim ending / or \\
+	if strings.HasSuffix(endPath, "/") || strings.HasSuffix(endPath, "\\") {
+		endPath = endPath[0 : len(endPath)-1]
+	}
+
+	// check if we're in the user's download path
+	if strings.HasSuffix(endPath, "Downloads") {
+		c.logf("You are running %s from your Downloads folder. This is not recommended.", c.baseName)
+		c.logf("Please move %s to a different folder, such as C:\\Games\\EverQuest.", c.baseName)
+		Exit(1)
+	}
+
+	// check if we're in the user's documents path
+	if strings.HasSuffix(endPath, "Documents") {
+		c.logf("You are running %s from your Documents folder. This is not recommended.", c.baseName)
+		c.logf("Please move %s to a different folder, such as C:\\Games\\EverQuest.", c.baseName)
+		Exit(1)
+	}
+
+	// check if we're in the user's desktop path
+	if strings.HasSuffix(endPath, "Desktop") {
+		c.logf("You are running %s from your Desktop folder. This is not recommended.", c.baseName)
+		c.logf("Please move %s to a different folder, such as C:\\Games\\EverQuest.", c.baseName)
+		Exit(1)
+	}
+}
+
 func (c *Client) PrePatch() {
 
 	_, err := os.Stat("eqgame.exe")
 	if err != nil {
-		_, err = os.Stat("everquest_rof2/eqgame.exe")
+		rofPath := "everquest_rof2"
+		_, err = os.Stat(rofPath + "/eqgame.exe")
 		if err == nil {
-			err = c.CopyBackup()
+			err = c.CopyBackup(rofPath)
 			if err != nil {
 				fmt.Printf("Failed to copy from everquest_rof2: %s\n", err)
-				fmt.Println("Automatically exiting in 10 seconds...")
-				time.Sleep(10 * time.Second)
-				os.Exit(1)
+				Exit(1)
+			}
+			return
+		}
+		rofPath = "../everquest_rof2"
+		_, err = os.Stat(rofPath + "/eqgame.exe")
+		if err == nil {
+			err = c.CopyBackup(rofPath)
+			if err != nil {
+				fmt.Printf("Failed to copy from ../everquest_rof2: %s\n", err)
+				Exit(1)
 			}
 			return
 		}
@@ -91,17 +133,15 @@ func (c *Client) PrePatch() {
 		err = c.Torrent()
 		if err != nil {
 			fmt.Printf("Failed to download: %s\n", err)
-			fmt.Println("Automatically exiting in 10 seconds...")
-			time.Sleep(10 * time.Second)
-
-			os.Exit(1)
+			Exit(1)
 		}
-		err = c.CopyBackup()
+		err = c.CopyBackup("everquest_rof2")
 		if err != nil {
 			fmt.Printf("Failed to copy from everquest_rof2: %s\n", err)
-			fmt.Println("Automatically exiting in 10 seconds...")
-			time.Sleep(10 * time.Second)
-			os.Exit(1)
+			if runtime.GOOS == "windows" {
+				c.logf("Close this window or press CTRL+C to exit.")
+				Exit(1)
+			}
 		}
 	}
 }
@@ -130,9 +170,8 @@ func (c *Client) Patch() {
 		c.logf(c.patchSummary)
 		c.logf("You can check %s.txt if you wish to review the patched files later.", c.baseName)
 		if isErrored {
-			c.logf("Since patching failed, waiting 10 seconds before exiting...")
-			time.Sleep(10 * time.Second)
-			os.Exit(1)
+			c.logf("Since patching failed, keeping window open.")
+			Exit(1)
 		}
 		c.logf("Since files were patched, waiting 5 seconds before launching EverQuest...")
 		time.Sleep(5 * time.Second)
@@ -178,6 +217,10 @@ func (c *Client) selfUpdateAndPatch() error {
 
 	err = c.selfUpdate()
 	if err != nil {
+		if strings.Contains(err.Error(), "because the file contains a virus or potentially unwanted software") {
+			fmt.Println("Your antivirus is blocking", c.baseName, "from being patched. You need to go into your antivirus and recover the file from quarentine.")
+			Exit(1)
+		}
 		c.logf("Failed self update, skipping: %s", err)
 	}
 
@@ -458,12 +501,44 @@ func (c *Client) patch() error {
 
 func (c *Client) downloadPatchFile(entry FileEntry) error {
 	c.logf("%s (%s)", entry.Name, generateSize(entry.Size))
+	client := c.httpClient
+	if !isMapsDownloaded && strings.HasPrefix(strings.ToLower(entry.Name), "/maps/") {
+		url := fmt.Sprintf("%s/maps.zip", c.patcherUrl)
+		resp, err := client.Get(url)
+		if err != nil {
+			return fmt.Errorf("download %s: %w", url, err)
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != 200 {
+			return fmt.Errorf("download %s responded %d (not 200)", url, resp.StatusCode)
+		}
+
+		w, err := os.Create("maps.zip")
+		if err != nil {
+			return fmt.Errorf("create %s: %w", entry.Name, err)
+		}
+		defer w.Close()
+
+		_, err = io.Copy(w, resp.Body)
+		if err != nil {
+			return fmt.Errorf("write %s: %w", entry.Name, err)
+		}
+
+		//unzip it
+		err = unpack("maps.zip", "maps")
+		if err != nil {
+			return fmt.Errorf("unzip %s: %w", entry.Name, err)
+		}
+
+		isMapsDownloaded = true
+		return nil
+	}
+
 	w, err := os.Create(entry.Name)
 	if err != nil {
 		return fmt.Errorf("create %s: %w", entry.Name, err)
 	}
 	defer w.Close()
-	client := c.httpClient
 
 	url := fmt.Sprintf("%s/%s/%s", c.cacheFileList.DownloadPrefix, c.clientVersion, entry.Name)
 	resp, err := client.Get(url)
@@ -536,4 +611,63 @@ func (c *Client) fetchUsername() (string, error) {
 		}
 	}
 	return "", nil
+}
+
+// unpack unzips the provided path
+func unpack(srcFile string, dstDir string) error {
+	ext := filepath.Ext(srcFile)
+	if ext != ".zip" {
+		return fmt.Errorf("invalid extension: %s", ext)
+	}
+	r, err := zip.OpenReader(srcFile)
+	if err != nil {
+		return fmt.Errorf("open: %w", err)
+	}
+	defer r.Close()
+
+	for _, f := range r.File {
+		filePath := filepath.Join(dstDir, f.Name)
+		if f.FileInfo().IsDir() {
+			err := os.MkdirAll(filePath, os.ModePerm)
+			if err != nil {
+				return fmt.Errorf("mkdirall: %w", err)
+			}
+			continue
+		}
+
+		if err := os.MkdirAll(filepath.Dir(filePath), os.ModePerm); err != nil {
+			return fmt.Errorf("mkdirall: %w", err)
+		}
+
+		outFile, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+		if err != nil {
+			return fmt.Errorf("openfile: %w", err)
+		}
+
+		rc, err := f.Open()
+		if err != nil {
+			return fmt.Errorf("open: %w", err)
+		}
+
+		_, err = io.Copy(outFile, rc)
+		if err != nil {
+			return fmt.Errorf("copy: %w", err)
+		}
+
+		outFile.Close()
+		rc.Close()
+	}
+
+	return nil
+}
+
+// Exit closes the client
+func Exit(sig int) {
+	if !mousetrap.StartedByExplorer() {
+		os.Exit(sig)
+	}
+	fmt.Println("Close this window or press CTRL+C to exit.")
+	for {
+		time.Sleep(1 * time.Second)
+	}
 }

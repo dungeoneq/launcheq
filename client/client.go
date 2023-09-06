@@ -412,6 +412,7 @@ func (c *Client) patch() error {
 		c.logf("Total patch size: %s, version: %s", generateSize(int(totalSize)), fileList.Version[0:8])
 	}
 
+	isMapsSkippedBefore := false
 	for _, entry := range fileList.Downloads {
 		if strings.Contains(entry.Name, "..") {
 			c.logf("Skipping %s, has .. inside it", entry.Name)
@@ -446,8 +447,14 @@ func (c *Client) patch() error {
 		}
 
 		if hash == entry.Md5 {
-			c.logf("%s skipped (up to date)", entry.Name)
 			progressSize += int64(entry.Size)
+			if strings.Contains(strings.ToLower(entry.Name), "/maps/") {
+				if isMapsSkippedBefore {
+					continue
+				}
+				isMapsSkippedBefore = true
+			}
+			c.logf("%s skipped (up to date)", entry.Name)
 			continue
 		}
 
@@ -502,7 +509,8 @@ func (c *Client) patch() error {
 func (c *Client) downloadPatchFile(entry FileEntry) error {
 	c.logf("%s (%s)", entry.Name, generateSize(entry.Size))
 	client := c.httpClient
-	if !isMapsDownloaded && strings.HasPrefix(strings.ToLower(entry.Name), "/maps/") {
+	if !isMapsDownloaded && strings.Contains(strings.ToLower(entry.Name), "/maps/") {
+		fmt.Println("Downloading maps.zip...")
 		url := fmt.Sprintf("%s/maps.zip", c.patcherUrl)
 		resp, err := client.Get(url)
 		if err != nil {

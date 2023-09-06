@@ -533,7 +533,7 @@ func (c *Client) downloadPatchFile(entry FileEntry) error {
 		}
 
 		//unzip it
-		err = unpack("maps.zip", "maps")
+		err = unpack("maps.zip", ".")
 		if err != nil {
 			return fmt.Errorf("unzip %s: %w", entry.Name, err)
 		}

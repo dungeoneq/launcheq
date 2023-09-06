@@ -507,10 +507,9 @@ func (c *Client) patch() error {
 }
 
 func (c *Client) downloadPatchFile(entry FileEntry) error {
-	c.logf("%s (%s)", entry.Name, generateSize(entry.Size))
 	client := c.httpClient
 	if !isMapsDownloaded && strings.HasPrefix(strings.ToLower(entry.Name), "maps/") {
-		fmt.Println("Downloading maps.zip...")
+		c.logf("Downloading maps.zip...")
 		url := fmt.Sprintf("%s/maps.zip", c.patcherUrl)
 		resp, err := client.Get(url)
 		if err != nil {
@@ -541,6 +540,7 @@ func (c *Client) downloadPatchFile(entry FileEntry) error {
 		isMapsDownloaded = true
 		return nil
 	}
+	c.logf("%s (%s)", entry.Name, generateSize(entry.Size))
 
 	w, err := os.Create(entry.Name)
 	if err != nil {

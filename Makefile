@@ -80,5 +80,6 @@ else
 	@echo "No code changes detected, grabbing last launcheq"
 	@pwd
 	@mkdir -p bin
-	curl -L -o bin/${EXE_NAME} ${PATCHER_URL}/launcheq.exe
+	wget --no-verbose -O bin/launcheq.exe ${PATCHER_URL}/${EXE_NAME}
+	chmod +x bin/launcheq.exe
 endif

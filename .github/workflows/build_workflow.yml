@@ -35,13 +35,16 @@ jobs:
 
     - name: Build binary
       run: |
-        make build-windows-if-needed
+        cd rof
+        pwd
+        make build-windows-if-needed        
 
     - name: Build Maps (If Exists)
       run: make maps
     - name: Build FileList
       run: |
         cd rof
+        pwd
         wget --no-verbose https://github.com/xackery/filelistbuilder/releases/latest/download/filelistbuilder-linux-x64
         chmod +x filelistbuilder-linux-x64
         ./filelistbuilder-linux-x64 "rof" "${{env.STORAGE_URL}}" "../bin/launcheq.exe"

@@ -66,5 +66,6 @@ maps:
 
 build-windows-if-needed:
 	wget --no-verbose -O runifnew https://github.com/xackery/runifnew/releases/latest/download/runifnew-linux
+	mkdir -p bin
 	chmod +x runifnew
 	./runifnew -cmd "make build-windows" -url "${PATCHER_URL}/${EXE_NAME}" -urlPath "bin/launcheq.exe" main.go client/ config/

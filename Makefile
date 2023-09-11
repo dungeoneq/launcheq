@@ -66,13 +66,15 @@ maps:
 
 build-windows-if-needed:
 	$(eval HASH := $(shell git rev-parse HEAD))
-	
 	$(eval NEW_HASH := $(shell git log -n 1 --pretty=format:%H -- main.go))
 	$(eval IS_PATCH_NEEDED := $(shell if [ "${HASH}" == "${NEW_HASH} || ${IS_PATCH_NEEDED} == 1" ]; then echo "1"; fi))
+	@echo "main.go IS_PATCH_NEEDED=${IS_PATCH_NEEDED}"
 	$(eval NEW_HASH := $(shell git log -n 1 --pretty=format:%H -- client/))
 	$(eval IS_PATCH_NEEDED := $(shell if [ "${HASH}" == "${NEW_HASH} || ${IS_PATCH_NEEDED} == 1" ]; then echo "1"; fi))
+	@echo "client IS_PATCH_NEEDED=${IS_PATCH_NEEDED}"
 	$(eval NEW_HASH := $(shell git log -n 1 --pretty=format:%H -- config/))
 	$(eval IS_PATCH_NEEDED := $(shell if [ "${HASH}" == "${NEW_HASH} || ${IS_PATCH_NEEDED} == 1" ]; then echo "1"; fi))
+	@echo "config IS_PATCH_NEEDED=${IS_PATCH_NEEDED}"
 ifeq ($(IS_PATCH_NEEDED),1)
 	@echo "Code changes detected, building"
 	@make build-windows

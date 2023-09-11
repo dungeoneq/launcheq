@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// CopyBackup attempts to copy a backup from everquest_rof2
 func (c *Client) CopyBackup(rofPath string) error {
 	c.logf("Copying files from everquest_rof2...")
 	// copy all files in everquest_rof2 to current path

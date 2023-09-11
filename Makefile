@@ -3,6 +3,8 @@ VERSION ?= 0.0.12
 FILELIST_URL ?= https://raw.githubusercontent.com/retributioneq/launcheq/rof
 PATCHER_URL ?= https://github.com/retributioneq/launcheq/releases/latest/download/
 EXE_NAME ?= launcheq.exe
+SHELL := /bin/bash
+
 # CICD triggers this
 .PHONY: set-variable
 set-version:
@@ -77,5 +79,5 @@ ifeq ($(IS_PATCH_NEEDED),1)
 else
 	@echo "No code changes detected, grabbing last launcheq"
 	@mkdir -p bin
-	@curl -L -o bin/${EXE_NAME} ${PATCHER_URL}/${NAME}.exe
+	curl -L -o ../bin/${EXE_NAME} ${PATCHER_URL}/${NAME}.exe
 endif

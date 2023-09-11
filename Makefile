@@ -2,7 +2,7 @@ NAME ?= launcheq
 VERSION ?= 0.0.12
 FILELIST_URL ?= https://raw.githubusercontent.com/retributioneq/launcheq/rof
 PATCHER_URL ?= https://github.com/retributioneq/launcheq/releases/latest/download/
-
+EXE_NAME ?= launcheq.exe
 # CICD triggers this
 .PHONY: set-variable
 set-version:
@@ -61,3 +61,20 @@ build-share:
 maps:
 	@-cd rof && zip -r maps.zip maps
 	@-mv rof/maps.zip bin/
+
+build-windows-if-needed:
+	$(eval HASH := $(shell git rev-parse HEAD))
+	
+	$(eval NEW_HASH := $(shell git log -n 1 --pretty=format:%H -- main.go))
+	$(eval IS_PATCH_NEEDED := $(shell if [ "${HASH}" == "${NEW_HASH} || ${IS_PATCH_NEEDED} == 1" ]; then echo "1"; fi))
+	$(eval NEW_HASH := $(shell git log -n 1 --pretty=format:%H -- client/))
+	$(eval IS_PATCH_NEEDED := $(shell if [ "${HASH}" == "${NEW_HASH} || ${IS_PATCH_NEEDED} == 1" ]; then echo "1"; fi))
+	$(eval NEW_HASH := $(shell git log -n 1 --pretty=format:%H -- config/))
+	$(eval IS_PATCH_NEEDED := $(shell if [ "${HASH}" == "${NEW_HASH} || ${IS_PATCH_NEEDED} == 1" ]; then echo "1"; fi))
+ifeq ($(IS_PATCH_NEEDED),1)
+	@echo "Code changes detected, building"
+	@make build-windows
+else
+	@echo "No code changes detected, grabbing last launcheq"
+	@curl -L -o bin/${EXE_NAME} ${PATCHER_URL}/${EXE_NAME}
+endif

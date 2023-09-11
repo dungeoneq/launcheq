@@ -35,7 +35,7 @@ jobs:
 
     - name: Build binary
       run: |
-        make build-windows
+        make build-windows-if-needed
 
     - name: Build Maps (If Exists)
       run: make maps

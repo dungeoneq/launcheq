@@ -35,24 +35,7 @@ jobs:
 
     - name: Build binary
       run: |
-        export HASH=`git rev-parse --short HEAD`
-        export NEW_HASH=`git log -n 1 --pretty=format:%H -- main.go`
-        export IS_PATCH_NEEDED=`if [ "$HASH" == "$NEW_HASH" ] || [ $IS_PATCH_NEEDED == 1" ]; then echo "1"; fi`
-        echo "main.go? $IS_PATCH_NEEDED"
-        export NEW_HASH=`git log -n 1 --pretty=format:%H -- client/`
-        export IS_PATCH_NEEDED=`if [ "$HASH" == "$NEW_HASH" ] || [ $IS_PATCH_NEEDED == 1" ]; then echo "1"; fi`
-        echo "client folder? $IS_PATCH_NEEDED"
-        export NEW_HASH=`git log -n 1 --pretty=format:%H -- config/`
-        export IS_PATCH_NEEDED=`if [ "$HASH" == "$NEW_HASH" ] || [ $IS_PATCH_NEEDED == 1" ]; then echo "1"; fi`
-        echo "config folder? $IS_PATCH_NEEDED"
-        if [ "$IS_PATCH_NEEDED" == "1" ]; then
-          echo "Code changes detected, building new launcheq"
-          make build-windows
-        else
-          echo "No code changes detected, grabbing last launcheq"
-          mkdir -p bin
-          wget --no-verbose -O bin/launcheq.exe ${{env.PATCHER_URL}}/${{env.EXE_NAME}}
-        fi
+        make build-windows-if-needed
 
     - name: Build Maps (If Exists)
       run: make maps

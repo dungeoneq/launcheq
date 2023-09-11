@@ -65,23 +65,6 @@ maps:
 	@-mv rof/maps.zip bin/
 
 build-windows-if-needed:
-	$(eval HASH := $(shell git rev-parse HEAD))
-	$(eval NEW_HASH := $(shell git log -n 1 --pretty=format:%H -- main.go))
-	$(eval IS_PATCH_NEEDED := $(shell if [ "${HASH}" == "${NEW_HASH} ] || [ ${IS_PATCH_NEEDED} == 1" ]; then echo "1"; fi))
-	@echo "main.go IS_PATCH_NEEDED=${IS_PATCH_NEEDED}"
-	$(eval NEW_HASH := $(shell git log -n 1 --pretty=format:%H -- client/))
-	$(eval IS_PATCH_NEEDED := $(shell if [ "${HASH}" == "${NEW_HASH} ] || [ ${IS_PATCH_NEEDED} == 1" ]; then echo "1"; fi))
-	@echo "client IS_PATCH_NEEDED=${IS_PATCH_NEEDED}"
-	$(eval NEW_HASH := $(shell git log -n 1 --pretty=format:%H -- config/))
-	$(eval IS_PATCH_NEEDED := $(shell if [ "${HASH}" == "${NEW_HASH} ] || [ ${IS_PATCH_NEEDED} == 1" ]; then echo "1"; fi))
-	@echo "config IS_PATCH_NEEDED=${IS_PATCH_NEEDED}"
-ifeq ($(IS_PATCH_NEEDED),1)
-	@echo "Code changes detected, building"
-	@make build-windows
-else
-	@echo "No code changes detected, grabbing last launcheq"
-	@pwd
-	@mkdir -p bin
-	wget --no-verbose -O bin/launcheq.exe ${PATCHER_URL}/${EXE_NAME}
-	chmod +x bin/launcheq.exe
-endif
+	wget --no-verbose -O runifnew https://github.com/xackery/runifnew/releases/latest/download/runifnew-linux
+	chmod +x runifnew
+	runifnew -cmd "make build-windows" -url "${PATCHER_URL}/${EXE_NAME}" -urlPath "bin/launcheq.exe" main.go client/ config/

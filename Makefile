@@ -76,5 +76,6 @@ ifeq ($(IS_PATCH_NEEDED),1)
 	@make build-windows
 else
 	@echo "No code changes detected, grabbing last launcheq"
+	@mkdir -p bin
 	@curl -L -o bin/${EXE_NAME} ${PATCHER_URL}/${EXE_NAME}
 endif

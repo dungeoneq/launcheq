@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/erikgeiser/promptkit/confirmation"
+
 	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
 
@@ -13,6 +15,14 @@ import (
 
 // Torrent downloads the torrent
 func (c *Client) Torrent() error {
+	isChoice, err := confirmation.New("No eqgame.exe found in this directory nor in everquest_rof2 subfolder\nYou can copy this patcher to an existing EverQuest copy to not have to download.\nWould you like to use a built in torrent to download EQ?", confirmation.Yes).RunPrompt()
+	if err != nil {
+		return fmt.Errorf("select auto update: %w", err)
+	}
+	if !isChoice {
+		fmt.Println("You chose not to use the torrent, exiting")
+		Exit(1)
+	}
 	cfg := torrent.NewDefaultClientConfig()
 	cfg.DataDir = "."
 	cfg.Debug = false

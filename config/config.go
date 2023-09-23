@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/erikgeiser/promptkit/confirmation"
 	"gopkg.in/yaml.v3"
 )
 
@@ -12,6 +13,7 @@ import (
 type Config struct {
 	FileListVersion string `yaml:"FileListVersion" desc:"Version of last file list fetched"`
 	baseName        string
+	IsAutoLaunch    bool `yaml:"IsAutoLaunch" desc:"Launch on startup"`
 }
 
 // New creates a new configuration
@@ -43,6 +45,13 @@ func New(ctx context.Context, baseName string) (*Config, error) {
 		if err != nil {
 			return nil, fmt.Errorf("open config: %w", err)
 		}
+	} else {
+		var isChoice bool
+		isChoice, err = confirmation.New("Do you want to start EQ automatically?", confirmation.Yes).RunPrompt()
+		if err != nil {
+			return nil, fmt.Errorf("select auto update: %w", err)
+		}
+		cfg.IsAutoLaunch = isChoice
 	}
 
 	defer f.Close()

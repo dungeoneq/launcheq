@@ -15,7 +15,7 @@ import (
 
 // Torrent downloads the torrent
 func (c *Client) Torrent() error {
-	isChoice, err := confirmation.New("No eqgame.exe found in this directory nor in everquest_rof2 subfolder\nYou can copy this patcher to an existing EverQuest copy to not have to download.\nWould you like to use a built in torrent to download EQ?", confirmation.Yes).RunPrompt()
+	isChoice, err := confirmation.New("eqgame.exe was not found in this directory or in an everquest_rof2 subfolder\nYou can place this patcher inside an existing EverQuest directory to skip this download.\nWould you like use a built in torrent to download EQ?", confirmation.Yes).RunPrompt()
 	if err != nil {
 		return fmt.Errorf("select auto update: %w", err)
 	}

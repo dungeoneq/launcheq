@@ -178,8 +178,9 @@ func (c *Client) Patch() {
 	}
 
 	if !c.cfg.IsAutoLaunch {
-		c.logf("Since auto launch is disabled, automatically exiting in 10 seconds...")
-		time.Sleep(10 * time.Second)
+		c.logf("Finished in %0.2f seconds", time.Since(start).Seconds())
+		c.logf("EverQuest is now patched and up to date.")
+		Exit(0)
 		return
 	}
 
